@@ -138,34 +138,26 @@ class PikaClient(object):
                                    body=ws_msg,
                                    properties=properties)
         
-
-class MainHandler(tornado.web.RequestHandler):
-
+class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
-        return self.get_secure_cookie("user")  
+        return self.get_secure_cookie("user")
+    
+class MainHandler(BaseHandler): 
 
     @tornado.web.asynchronous
     def get(self):
 
         # Send our main document
         if not self.current_user:
-            self.redirect("/login")
+            self.redirect("/loggin")
             return
         
         self.render("index.html", connected=self.application.pika.connected)
 
-class Login(tornado.web.RequestHandler):
-
-    def get_current_user(self):
-        return self.get_secure_cookie("user")  
+class LoginHandler(BaseHandler):
 
     @tornado.web.asynchronous
     def get(self):
-        if self.current_user:
-            self.redirect("/")
-            return
-        # Send our login document
-        #self.render("login.html", connected=self.application.pika.connected)
         self.write('<html><body><form action="/login" method="post">'
                    'Name: <input type="text" name="name">'
                    '<input type="submit" value="Sign in">'
@@ -175,7 +167,7 @@ class Login(tornado.web.RequestHandler):
         self.set_secure_cookie("user", self.get_argument("name"))
         self.redirect("/")        
 
-class errorCatch(tornado.web.RequestHandler):
+class errorCatch(tornado.web.HTTPError):
 
     @tornado.web.asynchronous
     def get(self):
@@ -216,7 +208,7 @@ class TornadoWebServer(tornado.web.Application):
 
         #Url to its handler mapping.
         handlers = [(r"/", MainHandler),
-                    (r"/Login", Login),
+                    (r"/login", LoginHandler),
                     (r"/404", errorCatch),
                     (r"/ws_channel", WebSocketServer),
                     (r"/images/(.*)", tornado.web.StaticFileHandler, {"path": "web/images"}),
