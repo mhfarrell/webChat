@@ -10,10 +10,11 @@ Check RabbitChat/LICENSE file for full copyright notice.
 """
 import os
 
-import PyMongo
-import bcrypt
+#import PyMongo
+#import bcrypt
+#import time
+#import json
 
-import torndsession
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
@@ -26,7 +27,6 @@ from pika.adapters.tornado_connection import TornadoConnection
 
 # Define available options
 define("port", default=8888, type=int, help="run on the given port")
-define("cookie_secret", help="random cookie secret")
 define("queue_host", default="127.0.0.1", help="Host for amqp daemon")
 define("queue_user", default="guest", help="User for amqp daemon")
 define("queue_password", default="guest", help="Password for amqp daemon")
@@ -137,24 +137,51 @@ class PikaClient(object):
                                    routing_key='tornado.*',
                                    body=ws_msg,
                                    properties=properties)
+        
 
+class MainHandler(tornado.web.RequestHandler):
 
-class LiveChat(tornado.web.RequestHandler):
+    def get_current_user(self):
+        return self.get_secure_cookie("user")  
 
     @tornado.web.asynchronous
     def get(self):
 
         # Send our main document
-        self.render("chat.html",
-                    connected=self.application.pika.connected)
+        if not self.current_user:
+            self.redirect("/login")
+            return
+        
+        self.render("index.html", connected=self.application.pika.connected)
 
 class Login(tornado.web.RequestHandler):
 
+    def get_current_user(self):
+        return self.get_secure_cookie("user")  
+
+    @tornado.web.asynchronous
+    def get(self):
+        if self.current_user:
+            self.redirect("/")
+            return
+        # Send our login document
+        #self.render("login.html", connected=self.application.pika.connected)
+        self.write('<html><body><form action="/login" method="post">'
+                   'Name: <input type="text" name="name">'
+                   '<input type="submit" value="Sign in">'
+                   '</form></body></html>')
+
+    def post(self):
+        self.set_secure_cookie("user", self.get_argument("name"))
+        self.redirect("/")        
+
+class errorCatch(tornado.web.RequestHandler):
+
     @tornado.web.asynchronous
     def get(self):
 
-        # Send our main document
-        self.render("index.html", connected=self.application.pika.connected)
+        # Send our 404 page
+        self.render("404.html")
 
 
 class WebSocketServer(tornado.websocket.WebSocketHandler):
@@ -173,7 +200,6 @@ class WebSocketServer(tornado.websocket.WebSocketHandler):
 
     def on_message(self, msg):
         'A message on the Webscoket.'
-
         #Publish the received message on the RabbitMQ
         self.pika_client.chat_message(msg)
 
@@ -184,23 +210,23 @@ class WebSocketServer(tornado.websocket.WebSocketHandler):
         #close the RabbiMQ connection...
         self.pika_client.connection.close()
 
-
 class TornadoWebServer(tornado.web.Application):
     ' Tornado Webserver Application...'
     def __init__(self):
 
         #Url to its handler mapping.
-        handlers = [(r"/ws_channel", WebSocketServer),
-                    (r"/chat", LiveChat),
-                    (r"/", Login),
+        handlers = [(r"/", MainHandler),
+                    (r"/Login", Login),
+                    (r"/404", errorCatch),
+                    (r"/ws_channel", WebSocketServer),
                     (r"/images/(.*)", tornado.web.StaticFileHandler, {"path": "web/images"}),
                     (r"/js/(.*)", tornado.web.StaticFileHandler, {"path": "web/js"}),
                     (r"/style/(.*)", tornado.web.StaticFileHandler, {"path": "web/style"})]
 
         #Other Basic Settings..
         settings = dict(
-            cookie_secret=options.cookie_secret,
-            login_url="/signin",
+            cookie_secret="set_this_later",
+            login_url="/login",
             template_path=os.path.join(os.path.dirname(__file__), "web"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
             xsrf_cookies=True,
@@ -233,3 +259,6 @@ if __name__ == '__main__':
 
     # Start the IOLoop
     ioloop.start()
+
+
+
