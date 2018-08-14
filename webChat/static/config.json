@@ -1,0 +1,22 @@
+{
+	"db": [{
+		"username": "chatAdmin", 
+		"password": "Far04189602.", 
+		"host": "127.0.0.1", 
+		"port": "27018", 
+		"name": "webChat"
+	}], 
+	"facebook": [{
+		"clientID": "2104506416250919", 
+		"clientSecret": "b1c6c48586be48371cff0796b8cc8bd8", 
+		"callbackURL": "/auth/facebook/callback", 
+		"profileFields": ["id", "displayName", "photos"]
+	}], 
+	"twitter": [{
+		"consumerKey": "<ConsumerKey>", 
+		"consumerSecret": "<ConsumerSecret>", 
+		"callbackURL": "/auth/twitter/callback", 
+		"profileFields": ["id", "displayName", "photos"]
+	}], 
+	"sessionSecret": "C048EF858453D75D4D00209DA5C4E015C1B7B33583B5E95FCD96B2BEDD000130"
+	}

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" >
+	<head>
+		<meta charset="UTF-8">
+		<title>webChat</title>
+		<script type="text/javascript" src="/js/web_socket.js"> </script>
+		<script type="text/javascript" src="/js/swfobject.js"> </script>
+		<script type="text/javascript">
+		WEB_SOCKET_SWF_LOCATION = "/js/WebSocketMain.swf";
+		
+		</script>
+		<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700,300' rel='stylesheet' type='text/css'>
+		<script src="https://use.typekit.net/hoy3lrg.js"></script>
+		<script>try{Typekit.load({ async: true });}catch(e){}</script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+		<link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.2/css/font-awesome.min.css'>
+		<link rel="stylesheet" href="style/style.css">
+	</head>
+	<body>
+		<div id="frame">
+			<div id="topbar">
+				<div id="profile" class="userProfile">
+					<div class="wrap">
+						<img id="profile-img" src="images/placeholder.png" class="online" alt="" />
+						<p id="yourUsername">Your Username</p>
+						<i class="fa fa-chevron-down expand-button" aria-hidden="true"></i>
+						
+						<div id="status-options">
+							<!-- Posts update to user database -->
+							<ul>
+								<li id="status-online" class="active"><span class="status-circle"></span> <p>Online</p></li>
+								<li id="status-away"><span class="status-circle"></span> <p>Away</p></li>
+								<li id="status-busy"><span class="status-circle"></span> <p>Busy</p></li>
+								<li id="status-offline"><span class="status-circle"></span> <p>Offline</p></li>
+							</ul>
+						</div>
+						<div id="expanded">
+							<label>Some Option</label>
+							<label>Some Option</label>
+							<label>Log Out</label>
+						</div>
+					</div>
+				</div>			
+			</div>
+			<div id="sidebar">
+			
+
+				<div id="search">
+					<label for=""><i class="fa fa-search" aria-hidden="true"></i></label>
+					<input type="text" placeholder="Search contacts..." />
+				</div>
+				<div id="contacts">
+					<ul>
+						<li class="contact active">
+							<div class="wrap">
+								<!-- get status from get request -->					
+								<span class="contact-status online"></span>
+								<!-- get profile picture from get request -->
+								<img src="images/placeholder.png" alt="" />
+								<div class="meta">
+									<!-- get contact name from get request -->
+									<p class="name">Contact One (current chat)</p>
+									<!-- get last message in chat from get request -->
+									<p class="preview">Last message in chat</p>
+								</div>
+							</div>
+						</li>
+						<li class="contact">
+							<div class="wrap">
+								<span class="contact-status online"></span>
+								<img src="images/placeholder.png" alt="" />
+								<div class="meta">
+									<p class="name">Contact Two (Online)</p>
+									<p class="preview">Last message in chat</p>
+								</div>
+							</div>
+						</li>
+						<li class="contact">
+							<div class="wrap">
+								<span class="contact-status away"></span>
+								<img src="images/placeholder.png" alt="" />
+								<div class="meta">
+									<p class="name">Contact Three (Away)</p>
+									<p class="preview">Last message in chat</p>
+								</div>
+							</div>
+						</li>
+						<li class="contact">
+							<div class="wrap">
+								<span class="contact-status busy"></span>
+								<img src="images/placeholder.png" alt="" />
+								<div class="meta">
+									<p class="name">Contact Four (Busy)</p>
+									<p class="preview">Last message in chat</p>
+								</div>
+							</div>
+						</li>
+						<li class="contact">
+							<div class="wrap">
+								<span class="contact-status"></span>
+								<img src="images/placeholder.png" alt="" />
+								<div class="meta">
+									<p class="name">Contact Five (Offline)</p>
+									<p class="preview">Last message in chat</p>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div id="bottom-bar">
+					<button id="addcontact"><i class="fa fa-user-plus fa-fw" aria-hidden="true"></i> <span>Add contact</span></button>
+					<button id="groupchat"><i class="fa fa-users fa-fw" aria-hidden="true"></i> <span>Create Group Chat</span></button>
+					<button id="filtercontact"><i class="fa fa-filter fa-fw" aria-hidden="true"></i> <span>Filter</span></button>
+					<button id="settings"><i class="fa fa-cog fa-fw" aria-hidden="true"></i> <span>Settings</span></button>
+				</div>
+			</div>
+			<div class="chatWindow">
+				<div class="contact-profile">
+					<img src="images/placeholder.png" alt="" />
+					<p>Contact One</p>
+					<input hidden id="yourUsername" type="text" value="Your Username" />
+				</div>
+				<div class="messages">
+					<ul>
+					<!-- pull from chat db -->
+						<li class="sent">
+							<img src="images/placeholder.png" alt="" />
+							<p>Hi how are you?</p>
+						</li>
+						<li class="replies">
+							<img src="images/placeholder.png" alt="" />
+							<p>I'm fine thanks.</p>
+						</li>
+					</ul>
+				</div>
+				<div class="message-input">
+					<div class="wrap">
+					<input type="text" placeholder="Write your message..." />
+					<i class="fa fa-paperclip attachment" aria-hidden="true"></i>
+					<button class="submit"><i class="fa fa-send" aria-hidden="true"></i></button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src='https://code.jquery.com/jquery-2.2.4.min.js'></script>
+		<script  src="js/index.js"></script>
+	</body>
+</html>
