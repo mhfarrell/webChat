@@ -1,6 +1,4 @@
-/db/*
-*.lock
-
+*db/*
+*.lock*
 *.interim
-db/journal/WiredTigerLog.0000000001
-db/diagnostic.data/metrics.interim
+*
