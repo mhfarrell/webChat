@@ -1,5 +1,4 @@
-*\db\
-
+/db/*
 *.lock
 
 *.interim
