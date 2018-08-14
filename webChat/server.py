@@ -145,7 +145,7 @@ class LiveChat(tornado.web.RequestHandler):
     def get(self):
 
         # Send our main document
-        self.render("index.html",
+        self.render("chat.html",
                     connected=self.application.pika.connected)
 
 class Login(tornado.web.RequestHandler):
@@ -154,8 +154,7 @@ class Login(tornado.web.RequestHandler):
     def get(self):
 
         # Send our main document
-        self.render("login.html",
-                    connected=self.application.pika.connected)
+        self.render("index.html", connected=self.application.pika.connected)
 
 
 class WebSocketServer(tornado.websocket.WebSocketHandler):
