@@ -149,7 +149,7 @@ class MainHandler(BaseHandler):
 
         # Send our main document
         if not self.current_user:
-            self.redirect("/loggin")
+            self.redirect("/login")
             return
         
         self.render("index.html", connected=self.application.pika.connected)
