@@ -1,17 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
+#!/usr/bin/env python
 
-RabbitChat - A simple web based chat sytem based on
-            RabbitMQ + Tornado + Websocket.
-
-Copyright (C) 2011,  Haridas N <haridas.nss@gmail.com>
-
-Check RabbitChat/LICENSE file for full copyright notice.
-"""
 import os
 
-#import PyMongo
-#import bcrypt
+import motor.motor_tornado
+import bcrypt
 #import time
 #import json
 
@@ -68,9 +61,6 @@ class PikaClient(object):
                                           credentials=credentials)
         self.connection = TornadoConnection(param,
                                             on_open_callback=self.on_connected)
-
-        #Currently this will close tornado ioloop.
-        #self.connection.add_on_close_callback(self.on_closed)
 
     def on_connected(self, connection):
         print('PikaClient: Connected to RabbitMQ on localhost:5672')
@@ -139,33 +129,56 @@ class PikaClient(object):
                                    properties=properties)
         
 class BaseHandler(tornado.web.RequestHandler):
+    #get cookies value 
     def get_current_user(self):
-        return self.get_secure_cookie("user")
+        return self.get_secure_cookie("username")
     
 class MainHandler(BaseHandler): 
 
-    @tornado.web.asynchronous
     def get(self):
-
-        # Send our main document
+        #redirect to login if no active cookies found
         if not self.current_user:
             self.redirect("/login")
             return
-        
+        #sent to chat if active cookies found
         self.render("index.html", connected=self.application.pika.connected)
 
 class LoginHandler(BaseHandler):
 
-    @tornado.web.asynchronous
+    def post(self):
+        users = mongo.db.users
+        loginUser = users.find_one({'username' : request.form['username']})
+        hashPass = bcrypt.hashpw(request.form['password'].encode('utf-8'), loginUser['password'].encode('utf-8'))
+        if loginUser:
+            if hashPass == loginUser['password'].encode('utf-8'):
+                self.set_secure_cookie("username", request.form['username'])
+                self.redirect("/")
+                return
+            return #invalid username/password
+        
+        
+
+class RegisterHandler(BaseHandler):
+
     def get(self):
-        self.write('<html><body><form action="/login" method="post">'
-                   'Name: <input type="text" name="name">'
-                   '<input type="submit" value="Sign in">'
-                   '</form></body></html>')
+        #duplicates
+
 
     def post(self):
-        self.set_secure_cookie("user", self.get_argument("name"))
-        self.redirect("/")        
+        users = mongo.db.users
+        existingUser = users.find_one({'username' : request.form['username']})
+
+        if existingUser is None:
+            hashPass = bcrypt.hashpw(request.form['password'].encode('utf-8'), bcrypt.genselt())
+            users.insert({'username' : request.form['username'], 'password' : hashPass})
+            self.set_secure_cookie("username", request.form['username'])
+            self.redirect("/")
+            return 
+        else:
+            #user exists
+            return #return error
+        
+            
 
 class errorCatch(tornado.web.HTTPError):
 
@@ -209,6 +222,7 @@ class TornadoWebServer(tornado.web.Application):
         #Url to its handler mapping.
         handlers = [(r"/", MainHandler),
                     (r"/login", LoginHandler),
+                    (r"/register", RegisterHandler),                    
                     (r"/404", errorCatch),
                     (r"/ws_channel", WebSocketServer),
                     (r"/images/(.*)", tornado.web.StaticFileHandler, {"path": "web/images"}),
@@ -229,6 +243,9 @@ class TornadoWebServer(tornado.web.Application):
 
 
 if __name__ == '__main__':
+
+    client = motor.motor_tornado.MotorClient('localhost', 27018)
+    
 
     #Tornado Application
     print("Initializing Tornado Webapplications settings...")

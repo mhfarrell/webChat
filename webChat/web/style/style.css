@@ -1,3 +1,9 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:300);
+
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+
 body {
   display: flex;
   align-items: center;
@@ -11,7 +17,86 @@ body {
   text-rendering: optimizeLegibility;
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.004);
 }
-
+/*  Login Page */
+#login-page {
+  width: 400px;
+  padding: 8% 0 0;
+  margin: auto;
+}
+#login-form {
+  position: relative;
+  z-index: 1;
+  background: #393939;
+  max-width: 400px;
+  margin: 0 auto 100px;
+  padding: 45px;
+  text-align: center;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+}
+#login-form input {
+  outline: 0;
+  background: #393939;
+  width: 100%;
+  border: 0;
+  margin: 0 0 15px;
+  padding: 15px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+#login-form button {
+  font-family: "Roboto", sans-serif;
+  text-transform: uppercase;
+  outline: 0;
+  background: #616161;
+  width: 100%;
+  border: 0;
+  padding: 15px;
+  color: #aaaaaa;
+  font-size: 14px;
+  transition: all 0.3 ease;
+  cursor: pointer;
+  font-weight: bold;
+}
+#login-form .button:hover,#login-form .button:active,#login-form .button:focus {
+  background: #adadad;
+}
+#login-form .register-form {
+  display: none;
+}
+#fbLogin {
+  width: 88%;
+  border: 0;
+  background: #393939;
+}
+#twitLogin {
+  width: 80%;
+  border: 0;
+  background: #393939;
+}
+#social-buttons div span {
+  font-weight: bold;
+  color: #aaaaaa
+}
+#login-form input {
+    background-color: white;
+}
+#form-line {
+  position: absolute; 
+  left: 0px;
+  width: 360px; 
+  margin-top: 2px; 
+  border-bottom: 2px solid white;
+}
+#login-form .message {
+  margin: 15px 0 0;
+  color: #aaaaaa;
+  font-size: 12px;
+}
+#login-form .message a {
+  color: #ffffff;
+  text-decoration: none;
+}
+/*Chat Page*/
 #frame {
   width: 95%;
   min-width: 360px;

@@ -2,22 +2,20 @@
 <head>
     <meta charset="UTF-8">
     <title>webChat</title>
-    <link rel="stylesheet" href="D:/Final Year Project/PRCO304 Final Year Project/version 6/webChat/public/css/style.css">
+    <link rel="stylesheet" href="style/style.css">
 </head>
   <body>
-    <div class="login-page">
-      <div class="form">
-        <div class="social-buttons">
-          <div><span>Login</span> via</div>
+    <div id="login-page">
+      <div id="login-form">
+        <div id="social-buttons">
+          <div><span>Login via</span></div>
           <a href="/auth/facebook">
-            <img class="loginBtn" src="D:/Final Year Project/PRCO304 Final Year Project/version 6/webChat/public/img/facebookLoginBtn.png" alt="Sign-In with Facebook">
+            <img id="fbLogin" class="loginBtn" src="images/facebookLoginBtn.png" alt="Sign-In with Facebook">
           </a>
-
           <a href="/auth/twitter">
-            <img class="loginBtn" src="D:/Final Year Project/PRCO304 Final Year Project/version 6/webChat/public/img/twitterLoginBtn.png" alt="Sign-In with Twitter">
+            <img id="twitLogin" class="loginBtn" src="images/twitterLoginBtn.png" alt="Sign-In with Twitter">
           </a>
         </div>
-        <div class="form-line"></div>
         <div style="margin-top: 18px;">
             <form action="/register" class="register-form" method="post" >
               <input type="text" name="username" placeholder="username"/>
@@ -28,18 +26,21 @@
             <form action="/login" class="login-form" method="post">
               <input type="text" name="username" placeholder="username"/>
               <input type="password" name="password" placeholder="password"/>
-              <button type="submit">login</button>
+              </br>
+			  <button type="submit">login</button>
               <p class="message">Not registered? <a href="#">Create an account</a></p>
             </form>
         </div>
     </div> <!-- end form -->
+	{% raw xsrf_form_html() %}
     </div> <!-- end login container -->
     <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
 
     <script>
         $('.message a').click(function(){
-            $('form, .social-buttons, .form-line').animate({height: "toggle", opacity: "toggle"}, "slow");
+            $('form, .social-buttons').animate({height: "toggle", opacity: "toggle"}, "slow");
           });
     </script>
   </body>
 </html>
+
