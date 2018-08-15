@@ -9,12 +9,12 @@
       <div id="login-form">
         <div id="social-buttons">
           <div><span>Login via</span></div>
-          <a href="/auth/facebook">
+          <!--<a href="/auth/facebook">-->
             <img id="fbLogin" class="loginBtn" src="images/facebookLoginBtn.png" alt="Sign-In with Facebook">
-          </a>
-          <a href="/auth/twitter">
+          <!--</a>-->
+          <!--<a href="/auth/twitter">-->
             <img id="twitLogin" class="loginBtn" src="images/twitterLoginBtn.png" alt="Sign-In with Twitter">
-          </a>
+          <!--</a>-->
         </div>
         <div style="margin-top: 18px;">
             <form action="/register" class="register-form" method="post" >
@@ -39,29 +39,7 @@
     <script>
         $('.message a').click(function(){
             $('form, .social-buttons').animate({height: "toggle", opacity: "toggle"}, "slow");
-          });
-		  
-		$(".register-form").on('#create', function(e) {
-			e.preventDefault();
-
-			$.ajax({
-				url: '/register',
-				type: "POST",
-				dataType: 'json',
-				data: $(".register-form").serialize()
-			})
-		});
-
-		$(".login-form").on('#login', function(e) {
-			e.preventDefault();
-
-			$.ajax({
-				url: '/register',
-				type: "POST",
-				dataType: 'json',
-				data: $(".register-form").serialize()
-			})
-		});			
+          });			
     </script>
   </body>
 </html>

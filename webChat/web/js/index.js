@@ -37,23 +37,24 @@ $("#status-options ul li").click(function() {
 
 function ws_init(url) {
 
-	newMessage("connecting to: " + url + "...");
+	console.log("connecting to: " + url + "...");
 	ws = new WebSocket(url);
 	ws.onopen = function(){	
-			//log("Connection established");
+			console.log("Connection established");
 		};
 	ws.onmessage = function(msg){
 			var jsonMsg= JSON.parse(msg.data);
 			newMessage(jsonMsg.username, jsonMsg.message);
 		};
 	ws.onclose = function(){
+			console.log("Connection closed");
 		}
 
 };
 
 function ws_send(user, msg){
 	//form message into json string
-	var msgText = '{"username":"' + user + '" , "message":"' + msg + '"}';
+	var msgText = '{"chatID": "1","username":"' + user + '" , "message":"' + msg + '"}';
 	//send json to web socket
 	ws.send(msgText);
 };

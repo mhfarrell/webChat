@@ -11,8 +11,10 @@ import json
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
+import tornado.gen
 import tornado.websocket
 from tornado.options import options, define
+from tornado import gen
 
 import pika
 from pika.adapters.tornado_connection import TornadoConnection
@@ -127,81 +129,91 @@ class PikaClient(object):
                                    routing_key='tornado.*',
                                    body=ws_msg,
                                    properties=properties)
-        
+
 class BaseHandler(tornado.web.RequestHandler):
     #get cookies value 
     def get_current_user(self):
         return self.get_secure_cookie("username")
     
-class MainHandler(BaseHandler): 
-
+class MainHandler(BaseHandler):
+    
+    @tornado.web.asynchronous
     def get(self):
-        db = self.settings['db']
         #redirect to login if no active cookies found
         if not self.current_user:
             self.redirect("/login")
-            return
-        #sent to chat if active cookies found
+            return 
+        #sent to chat if active cookies found        
         self.render("index.html", connected=self.application.pika.connected)
+        print("hi")
+        chatDB = self.settings['chatDB']
+        #chatDB.chat.find({'chatID': '1'})
+        #messages = chatDB.chat.find({'chatID': '1'})
+        print("loading messages")
+        chatDB.chat.find({'chatID': '1'}).each(self._got_message)
+
+    def _got_message(self, message, error):
+        print("got milk")
+        print(message)
+        #self.websocket.write_message(message)
+
 
 class LoginHandler(BaseHandler):
     def get(self):
         self.render("login.html")   
 
+    @gen.coroutine
     def post(self):
-        print("Login Test")
-        print(self.request.body.decode('utf-8'))
-        print("end test")
-        db = self.settings['db']
-        jsonUser = json.loads(self.request.body.decode('utf-8'))
-        try:
-            loginUser = db.find_one({'username' : jsonUser['username']})   
-        except ValueError:
-            self.redirect("/login")
-        
-        hashPass = bcrypt.hashpw(jsonUser['password'].encode('utf-8'), loginUser['password'].encode('utf-8'))
+        db = self.settings['usersDB']
+        loginUser = yield db.users.find_one({'username' : self.get_argument('username')})
+        hashPass = bcrypt.hashpw(self.get_argument('password').encode('utf-8'), loginUser['password'])
         if loginUser:
-            if hashPass == loginUser['password'].encode('utf-8'):
-                self.set_secure_cookie("username", jsonUser['username'])
+            print(" i exist")
+            if hashPass == loginUser['password']:
+                print("password matched")
+                self.set_secure_cookie("username", self.get_argument('username'))
+                print("cookie set ")
                 self.redirect("/")
+                print("pika")
                 return
-            return #invalid username/password
+            else:
+                self.redirect("/login")
+                return #invalid username/password
+        return
         
         
-
+class LogoutHandler(tornado.web.RequestHandler):
+    def get(self):
+        print("clearing", self.get_secure_cookie("username").decode("utf-8"))
+        self.clear_cookie("username".encode("utf-8"))
+        self.redirect("/login")
+        
 class RegisterHandler(BaseHandler):
 
     def get(self):
         return
         #duplicates needs rejig as its in post atm
 
-
+    @gen.coroutine
     def post(self):
-        db = self.settings['db']
-        print("Register Test")
-        print(self.request.body.decode('utf-8'))
-        print("end test")
-        jsonUser = json.loads(self.request.body.decode('utf-8'))
-        existingUser = db.find_one({'username' : jsonUser['username']})
-
-
+        db = self.settings['usersDB']
+        existingUser = yield db.users.find_one({'username' : self.get_argument('username')})
         if existingUser is None:
-            hashPass = bcrypt.hashpw(request.form['password'].encode('utf-8'), bcrypt.genselt())
-            db.users.insert_one({'username' : jsonUser['username'], 'password' : hashPass})
-            self.set_secure_cookie("username", jsonUser['username'])
+            hashPass = bcrypt.hashpw(self.get_argument('password').encode('utf-8'), bcrypt.gensalt())
+            db.users.insert_one({'username' : self.get_argument('username'), 'password' : hashPass})
+            self.set_secure_cookie("username", self.get_argument('username'))
+            self.set_cookie("username", self.get_argument('username'))
             self.redirect("/")
             return 
         else:
+            self.redirect("/")
             #user exists
             return #return error
         
-            
-
 class errorCatch(tornado.web.HTTPError):
 
     @tornado.web.asynchronous
     def get(self):
-
         # Send our 404 page
         self.render("404.html")
 
@@ -219,11 +231,27 @@ class WebSocketServer(tornado.websocket.WebSocketHandler):
         self.pika_client.websocket = self
 
         ioloop.add_timeout(1000, self.pika_client.connect)
+        
+        chatDB = self.settings['chatDB']
+        print("loading messages")
+        chatDB.chat.find({'chatID': '1'}).each(self._got_message)
 
+    def _got_message(self, message, error):
+        print("got milk")
+        print(message)
+        msg = {'chatID' : message['chatID'],'username' : message['username'], 'message' : message['message']}
+        self.write_message(msg)        
+        
+    @gen.coroutine
     def on_message(self, msg):
         'A message on the Webscoket.'
         #Publish the received message on the RabbitMQ
         self.pika_client.chat_message(msg)
+        chatDB = self.settings['chatDB']
+        message = json.loads(msg)
+        #can likely just pass directly into mongo
+        chatDB.chat.insert_one({'chatID' : message['chatID'],'username' : message['username'], 'message' : message['message']})
+
 
     def on_close(self):
         'Closing the websocket..'
@@ -239,6 +267,7 @@ class TornadoWebServer(tornado.web.Application):
         #Url to its handler mapping.
         handlers = [(r"/", MainHandler),
                     (r"/login", LoginHandler),
+                    (r"/logout", LogoutHandler),
                     (r"/register", RegisterHandler),                    
                     (r"/404", errorCatch),
                     (r"/ws_channel", WebSocketServer),
@@ -259,9 +288,7 @@ class TornadoWebServer(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
-if __name__ == '__main__':
-
-    
+if __name__ == '__main__':    
     
 
     #Tornado Application
@@ -283,7 +310,8 @@ if __name__ == '__main__':
     # Add our Pika connect to the IOLoop since we loop on ioloop.start
     #ioloop.add_timeout(1000, application.pika.connect)
     #client = motor.motor_tornado.MotorClient('localhost', 27018).users
-    application.settings['db'] = motor.motor_tornado.MotorClient('localhost', 27018).users
+    application.settings['usersDB'] = motor.motor_tornado.MotorClient('localhost', 27018).users
+    application.settings['chatDB'] = motor.motor_tornado.MotorClient('localhost', 27018).chat
     # Start the IOLoop
     ioloop.start()
 
