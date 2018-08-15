@@ -149,8 +149,11 @@ class LoginHandler(BaseHandler):
         self.render("login.html")   
 
     def post(self):
-        jsonUser = json.loads(self.request.body.decode('utf-8'))
+        print("Login Test")
+        print(self.request.body.decode('utf-8'))
+        print("end test")
         db = self.settings['db']
+        jsonUser = json.loads(self.request.body.decode('utf-8'))
         try:
             loginUser = db.find_one({'username' : jsonUser['username']})   
         except ValueError:
@@ -175,7 +178,7 @@ class RegisterHandler(BaseHandler):
 
     def post(self):
         db = self.settings['db']
-        print("Test")
+        print("Register Test")
         print(self.request.body.decode('utf-8'))
         print("end test")
         jsonUser = json.loads(self.request.body.decode('utf-8'))

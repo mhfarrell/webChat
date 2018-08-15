@@ -17,17 +17,17 @@
           </a>
         </div>
         <div style="margin-top: 18px;">
-            <form action="/register" id="register" class="register-form" method="post">
+            <form action="/register" class="register-form" method="post" >
               <input type="text" name="username" placeholder="username"/>
               <input type="password" name="password" placeholder="password"/>
-              <button type="submit">create</button>
+              <button type="submit" id="create">create</button>
               <p class="message">Already registered? <a href="#">Sign In</a></p>
             </form>
-            <form action="/login" id="login" class="login-form" method="post">
+            <form action="/login" class="login-form" method="post">
               <input type="text" name="username" placeholder="username"/>
               <input type="password" name="password" placeholder="password"/>
               </br>
-			  <button type="submit">login</button>
+			  <button type="submit" id="login">login</button>
               <p class="message">Not registered? <a href="#">Create an account</a></p>
             </form>
         </div>
@@ -40,37 +40,28 @@
         $('.message a').click(function(){
             $('form, .social-buttons').animate({height: "toggle", opacity: "toggle"}, "slow");
           });
-		 
-		function ConvertFormToJSON(form){
-			var array = jQuery(form).serializeArray();
-			var json = {};
-			
-			jQuery.each(array, function() {
-				json[this.name] = this.value || '';
-			});
-			
-			return json;
-		}
+		  
+		$(".register-form").on('#create', function(e) {
+			e.preventDefault();
 
-		jQuery(document).on('ready', function() {
-			jQuery('form#register').bind('submit', function(event){
-				event.preventDefault();
-				
-				var form = this;
-				var json = ConvertFormToJSON(form);
-				
-				$.ajax({
-					type: "POST",
-					url: "/register",
-					data: json,
-					dataType: "json"
-				}).fail(function() { 
-					alert("Failed to send"); 
-				});
+			$.ajax({
+				url: '/register',
+				type: "POST",
+				dataType: 'json',
+				data: $(".register-form").serialize()
+			})
+		});
 
-				return true;
-			});
-		});		
+		$(".login-form").on('#login', function(e) {
+			e.preventDefault();
+
+			$.ajax({
+				url: '/register',
+				type: "POST",
+				dataType: 'json',
+				data: $(".register-form").serialize()
+			})
+		});			
     </script>
   </body>
 </html>
