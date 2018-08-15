@@ -6,7 +6,7 @@ import os
 import motor.motor_tornado
 import bcrypt
 #import time
-#import json
+import json
 
 import tornado.httpserver
 import tornado.ioloop
@@ -136,6 +136,7 @@ class BaseHandler(tornado.web.RequestHandler):
 class MainHandler(BaseHandler): 
 
     def get(self):
+        db = self.settings['db']
         #redirect to login if no active cookies found
         if not self.current_user:
             self.redirect("/login")
@@ -144,14 +145,21 @@ class MainHandler(BaseHandler):
         self.render("index.html", connected=self.application.pika.connected)
 
 class LoginHandler(BaseHandler):
+    def get(self):
+        self.render("login.html")   
 
     def post(self):
-        users = mongo.db.users
-        loginUser = users.find_one({'username' : request.form['username']})
-        hashPass = bcrypt.hashpw(request.form['password'].encode('utf-8'), loginUser['password'].encode('utf-8'))
+        jsonUser = json.loads(self.request.body.decode('utf-8'))
+        db = self.settings['db']
+        try:
+            loginUser = db.find_one({'username' : jsonUser['username']})   
+        except ValueError:
+            self.redirect("/login")
+        
+        hashPass = bcrypt.hashpw(jsonUser['password'].encode('utf-8'), loginUser['password'].encode('utf-8'))
         if loginUser:
             if hashPass == loginUser['password'].encode('utf-8'):
-                self.set_secure_cookie("username", request.form['username'])
+                self.set_secure_cookie("username", jsonUser['username'])
                 self.redirect("/")
                 return
             return #invalid username/password
@@ -161,17 +169,23 @@ class LoginHandler(BaseHandler):
 class RegisterHandler(BaseHandler):
 
     def get(self):
-        #duplicates
+        return
+        #duplicates needs rejig as its in post atm
 
 
     def post(self):
-        users = mongo.db.users
-        existingUser = users.find_one({'username' : request.form['username']})
+        db = self.settings['db']
+        print("Test")
+        print(self.request.body.decode('utf-8'))
+        print("end test")
+        jsonUser = json.loads(self.request.body.decode('utf-8'))
+        existingUser = db.find_one({'username' : jsonUser['username']})
+
 
         if existingUser is None:
             hashPass = bcrypt.hashpw(request.form['password'].encode('utf-8'), bcrypt.genselt())
-            users.insert({'username' : request.form['username'], 'password' : hashPass})
-            self.set_secure_cookie("username", request.form['username'])
+            db.users.insert_one({'username' : jsonUser['username'], 'password' : hashPass})
+            self.set_secure_cookie("username", jsonUser['username'])
             self.redirect("/")
             return 
         else:
@@ -235,7 +249,7 @@ class TornadoWebServer(tornado.web.Application):
             login_url="/login",
             template_path=os.path.join(os.path.dirname(__file__), "web"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
-            xsrf_cookies=True,
+            xsrf_cookies=False,
             debug=True)
 
         #Initialize Base class also.
@@ -244,7 +258,7 @@ class TornadoWebServer(tornado.web.Application):
 
 if __name__ == '__main__':
 
-    client = motor.motor_tornado.MotorClient('localhost', 27018)
+    
     
 
     #Tornado Application
@@ -265,7 +279,8 @@ if __name__ == '__main__':
 
     # Add our Pika connect to the IOLoop since we loop on ioloop.start
     #ioloop.add_timeout(1000, application.pika.connect)
-
+    #client = motor.motor_tornado.MotorClient('localhost', 27018).users
+    application.settings['db'] = motor.motor_tornado.MotorClient('localhost', 27018).users
     # Start the IOLoop
     ioloop.start()
 
