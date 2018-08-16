@@ -5,7 +5,6 @@ import os
 
 import motor.motor_tornado
 import bcrypt
-#import time
 import json
 
 import tornado.httpserver
@@ -233,12 +232,9 @@ class WebSocketServer(tornado.websocket.WebSocketHandler):
         ioloop.add_timeout(1000, self.pika_client.connect)
         
         chatDB = self.settings['chatDB']
-        print("loading messages")
         chatDB.chat.find({'chatID': '1'}).each(self._got_message)
 
     def _got_message(self, message, error):
-        print("got milk")
-        print(message)
         msg = {'chatID' : message['chatID'],'username' : message['username'], 'message' : message['message']}
         self.write_message(msg)        
         
@@ -309,7 +305,6 @@ if __name__ == '__main__':
 
     # Add our Pika connect to the IOLoop since we loop on ioloop.start
     #ioloop.add_timeout(1000, application.pika.connect)
-    #client = motor.motor_tornado.MotorClient('localhost', 27018).users
     application.settings['usersDB'] = motor.motor_tornado.MotorClient('localhost', 27018).users
     application.settings['chatDB'] = motor.motor_tornado.MotorClient('localhost', 27018).chat
     # Start the IOLoop
